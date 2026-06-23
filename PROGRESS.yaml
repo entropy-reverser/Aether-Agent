@@ -9,13 +9,13 @@
 $schema: progress.v1
 project_name: aether-agent-v2
 project_version: 0.2.0
-last_updated: "2026-06-21T00:00:00Z"
+last_updated: "2026-06-23T00:00:00Z"
 last_updated_by: "agent-window-1"
 last_window_id: "window-1"
 
 # --- High-level state ---
-current_stage: stage-1-routing
-overall_progress: 11%   # (1 of 9 stages complete) * 100
+current_stage: stage-2-memory
+overall_progress: 22%   # (2 of 9 stages complete) * 100
 
 # --- Stage status ---
 stages:
@@ -23,38 +23,58 @@ stages:
     status: done
     started_at: "2026-06-21T00:00:00Z"
     completed_at: "2026-06-21T00:00:00Z"
-    commit: null   # filled in at first commit
+    commit: null
     notes: "Project skeleton, config, tooling (ruff/mypy/pytest), README"
   stage-1-routing:
-    status: in_progress
+    status: done
     started_at: "2026-06-21T00:00:00Z"
-    completed_at: null
+    completed_at: "2026-06-23T00:00:00Z"
     commit: null
-    notes: "Zero-LLM score-based routing engine in progress"
+    notes: "Zero-LLM routing engine: 73 tests green, 97% coverage. See CONTEXT_SUMMARY_STAGE1.md"
     subtasks:
       - id: 1.1
         name: "tiers.py (Tier enum + model map)"
-        status: in_progress
+        status: done
       - id: 1.2
         name: "signals.py (7 deterministic extractors)"
-        status: not_started
+        status: done
       - id: 1.3
         name: "scorer.py (weighted sum -> 0-100)"
-        status: not_started
+        status: done
       - id: 1.4
         name: "feedback.py (adaptive thumb feedback)"
-        status: not_started
+        status: done
       - id: 1.5
         name: "policy.py (YAML overrides + budget guardrails)"
-        status: not_started
+        status: done
       - id: 1.6
         name: "router.py (orchestrator) + enterprise YAML"
-        status: not_started
+        status: done
       - id: 1.7
         name: "api endpoints + demo script + tests"
-        status: not_started
+        status: done
   stage-2-memory:
-    status: not_started
+    status: in_progress
+    started_at: "2026-06-23T00:00:00Z"
+    completed_at: null
+    commit: null
+    notes: "Self-growing wiki module (user-selected priority) + server-deploy interface"
+    subtasks:
+      - id: 2.1
+        name: "wiki.py WikiStore (Markdown source of truth)"
+        status: not_started
+      - id: 2.2
+        name: "Vector index (derived, rebuildable)"
+        status: not_started
+      - id: 2.3
+        name: "LLM fact extractor (deterministic fallback)"
+        status: not_started
+      - id: 2.4
+        name: "Server-deploy interface abstraction"
+        status: not_started
+      - id: 2.5
+        name: "Tests for wiki module"
+        status: not_started
   stage-3-graph:
     status: not_started
   stage-4-context:
@@ -74,8 +94,8 @@ key_decisions:
     decision: "Deterministic zero-LLM score-based routing"
     rationale: "Saves 100% of classification token cost + ~200ms latency vs LLM routing"
   - id: D002
-    decision: "Three tiers: PARSE/CHAT/COMPLEX by score thresholds 25/55"
-    rationale: "Maps cleanly to model cost tiers; thresholds tunable via config"
+    decision: "Three tiers: PARSE/CHAT/COMPLEX by score thresholds 35/55"
+    rationale: "Maps cleanly to model cost tiers; 35 (not 25) so commands land in PARSE"
   - id: D003
     decision: "Signals expressed as complexity contribution (0-1)"
     rationale: "Uniform scale lets scorer use a single weighted sum; command/conversation signals contribute negatively"
@@ -94,14 +114,15 @@ environment:
   chroma_initialized: false
   local_llm_available: false
   env_file_present: false   # .env.example present; no real .env yet
-  dev_tools_installed: false   # ruff/mypy/pytest pending install
+  dev_tools_installed: true   # ruff/mypy/pytest + types-PyYAML installed
 
 # --- Test state ---
 tests:
-  total: 0
-  passing: 0
+  total: 73
+  passing: 73
   failing: 0
-  last_run: null
+  last_run: "2026-06-23T00:00:00Z"
+  coverage: 97%
   coverage: null
 
 # --- Blockers / risks ---

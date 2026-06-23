@@ -45,4 +45,4 @@ def get_logger():  # type: ignore[no-untyped-def]
     return _loguru_logger
 
 
-logger = get_logger()
+logger = get_logger()  # type: ignore[no-untyped-call]

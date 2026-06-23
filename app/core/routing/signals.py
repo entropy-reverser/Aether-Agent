@@ -19,7 +19,11 @@ from __future__ import annotations
 
 import re
 import string
+from collections.abc import Callable
 from dataclasses import dataclass
+
+# Type alias: each extractor is a pure function message -> SignalResult.
+SignalResultExtractor = Callable[[str], "SignalResult"]
 
 # --- Keyword vocabularies (kept module-level for easy tuning + testing) ---
 
