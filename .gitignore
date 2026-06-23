@@ -1,0 +1,33 @@
+# --- Secrets & local config ---
+.env
+*.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Runtime data (kept out of git; ChromaDB, checkpoints, logs) ---
+data/
+logs/
+wiki/*.tmp
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

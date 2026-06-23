@@ -1,0 +1,130 @@
+# =============================================================================
+# Aether-Agent v2 — Cross-Window Progress Tracker
+# =============================================================================
+# This file is the SINGLE SOURCE OF TRUTH for project state.
+# - New windows read this first (before any other action).
+# - The agent updates this after every meaningful unit of work.
+# - Users do NOT edit this manually (the agent maintains it).
+# =============================================================================
+$schema: progress.v1
+project_name: aether-agent-v2
+project_version: 0.2.0
+last_updated: "2026-06-21T00:00:00Z"
+last_updated_by: "agent-window-1"
+last_window_id: "window-1"
+
+# --- High-level state ---
+current_stage: stage-1-routing
+overall_progress: 11%   # (1 of 9 stages complete) * 100
+
+# --- Stage status ---
+stages:
+  stage-0-foundation:
+    status: done
+    started_at: "2026-06-21T00:00:00Z"
+    completed_at: "2026-06-21T00:00:00Z"
+    commit: null   # filled in at first commit
+    notes: "Project skeleton, config, tooling (ruff/mypy/pytest), README"
+  stage-1-routing:
+    status: in_progress
+    started_at: "2026-06-21T00:00:00Z"
+    completed_at: null
+    commit: null
+    notes: "Zero-LLM score-based routing engine in progress"
+    subtasks:
+      - id: 1.1
+        name: "tiers.py (Tier enum + model map)"
+        status: in_progress
+      - id: 1.2
+        name: "signals.py (7 deterministic extractors)"
+        status: not_started
+      - id: 1.3
+        name: "scorer.py (weighted sum -> 0-100)"
+        status: not_started
+      - id: 1.4
+        name: "feedback.py (adaptive thumb feedback)"
+        status: not_started
+      - id: 1.5
+        name: "policy.py (YAML overrides + budget guardrails)"
+        status: not_started
+      - id: 1.6
+        name: "router.py (orchestrator) + enterprise YAML"
+        status: not_started
+      - id: 1.7
+        name: "api endpoints + demo script + tests"
+        status: not_started
+  stage-2-memory:
+    status: not_started
+  stage-3-graph:
+    status: not_started
+  stage-4-context:
+    status: not_started
+  stage-5-progress:
+    status: not_started
+  stage-6-tasks:
+    status: not_started
+  stage-7-api-docs:
+    status: not_started
+  stage-8-cicd-deploy:
+    status: not_started
+
+# --- Key decisions (mirrors latest ContextCheckpoint) ---
+key_decisions:
+  - id: D001
+    decision: "Deterministic zero-LLM score-based routing"
+    rationale: "Saves 100% of classification token cost + ~200ms latency vs LLM routing"
+  - id: D002
+    decision: "Three tiers: PARSE/CHAT/COMPLEX by score thresholds 25/55"
+    rationale: "Maps cleanly to model cost tiers; thresholds tunable via config"
+  - id: D003
+    decision: "Signals expressed as complexity contribution (0-1)"
+    rationale: "Uniform scale lets scorer use a single weighted sum; command/conversation signals contribute negatively"
+  - id: D004
+    decision: "Native Python + pytest validation for Stage 1 (no Docker/Redis needed)"
+    rationale: "Routing is pure computation; fastest, most transparent feedback loop"
+  - id: D005
+    decision: "PROGRESS.yaml enabled from day one (NEW-2)"
+    rationale: "Cross-window continuity must be reliable from the first commit"
+
+# --- Environment state ---
+environment:
+  python_version: "3.12.10"
+  os: "win32 10.0.26200"
+  redis_running: false
+  chroma_initialized: false
+  local_llm_available: false
+  env_file_present: false   # .env.example present; no real .env yet
+  dev_tools_installed: false   # ruff/mypy/pytest pending install
+
+# --- Test state ---
+tests:
+  total: 0
+  passing: 0
+  failing: 0
+  last_run: null
+  coverage: null
+
+# --- Blockers / risks ---
+blockers: []
+risks:
+  - id: R001
+    description: "Redis not running; irrelevant for Stage 1 but needed at Stage 2"
+    severity: low
+    mitigation: "Document in README; Stage 1 routing needs no Redis"
+
+# --- Next action (CRITICAL — this is what the next window reads first) ---
+next_action:
+  description: "Implement app/core/routing/tiers.py (Tier enum + MODEL_MAP) then signals.py (7 extractors) + tests"
+  expected_output: "Tier/SignalResult dataclasses defined; signals.py extractors return 0-1 contributions; first tests green"
+  estimated_steps:
+    - "Install requirements-dev.txt (ruff/mypy/pytest)"
+    - "Write tiers.py: Tier enum, MODEL_MAP, tier_for_score()"
+    - "Write signals.py: 7 pure-function extractors + extract_all()"
+    - "Write tests/test_signals.py covering each extractor"
+
+# --- Pointers (do NOT inline contents — just paths) ---
+pointers:
+  implementation_plan: "Aether_Agent_v2_Implementation_Plan.md"
+  context_rules: "Aether_Agent_v2_Context_Management_Rules.md"
+  example_policy: "enterprise_routing.example.yaml"
+  api_docs: "docs/API.md"

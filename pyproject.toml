@@ -1,0 +1,50 @@
+# =============================================================================
+# Aether-Agent v2 — tooling config (ruff + mypy + pytest)
+# =============================================================================
+# Ruff replaces black + isort + flake8. mypy enforces types on app/.
+# pytest discovers tests/ with coverage on app/.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["data", "logs", "wiki"]
+
+[tool.ruff.lint]
+# WHY: pycodestyle + pyflakes + import sorting + bugbear + naming + docstring
+select = ["E", "W", "F", "I", "B", "N", "D", "UP", "SIM"]
+ignore = [
+    "D100", "D104",   # missing docstring in module/package is fine (we use module docstrings)
+    "D105",           # magic methods need no docstring
+    "D107",           # __init__ needs no docstring
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D100", "D101", "D102", "D103"]   # tests don't need docstrings
+"scripts/*" = ["D100", "D103"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+# WHY: allow the third-party libs we depend on to be untyped without failing CI
+ignore_missing_imports = true
+files = ["app"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]

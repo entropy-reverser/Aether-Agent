@@ -1,0 +1,40 @@
+# =============================================================================
+# Aether-Agent v2 — Enterprise routing policy (example)
+# =============================================================================
+# Declarative overrides + budget guardrails. Reload at runtime via
+# `POST /api/routing/reload` (Stage 1 ships the loader; the endpoint comes
+# with API polish). Format is documented in app/core/routing/policy.py.
+#
+# Rules are evaluated top-to-bottom; the FIRST match wins. Wildcard dimensions
+# are simply omitted (null). All keys are optional.
+# =============================================================================
+
+# Hard ceiling on the chosen tier. Set to CHAT to cap cost on budget-constrained
+# deployments; set to COMPLEX (or remove) to allow the strongest model.
+# Here we allow COMPLEX so the coding override below is visible.
+max_tier: COMPLEX
+
+# Ordered override rules. Each rule forces a tier when its non-null dimensions
+# all match the RoutingContext.
+overrides:
+  # Coding tasks during implementation need the strong model regardless of score.
+  - task_type: coding
+    project_phase: implementation
+    tier: COMPLEX
+    reason: "active coding needs strong reasoning"
+
+  # Support / FAQ lookups should stay cheap — always PARSE/CHAT.
+  - task_type: support
+    tier: CHAT
+    reason: "support lookup does not need strong model"
+
+  # Analysts doing deep analysis always get COMPLEX.
+  - user_role: analyst
+    tier: COMPLEX
+    reason: "analyst role implies complex analysis"
+
+  # Planning phase for engineers — medium is enough.
+  - user_role: engineer
+    project_phase: planning
+    tier: CHAT
+    reason: "planning discussions are conversational"
