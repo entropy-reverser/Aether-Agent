@@ -1,0 +1,512 @@
+/* Aether-Agent v2 Demo — 样式表 */
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --bg-input: #0f172a;
+  --border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --parse-color: #06b6d4;
+  --chat-color: #10b981;
+  --complex-color: #a855f7;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --code-bg: #0f172a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* ========== Header ========== */
+header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+header .subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+header .badges {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.badge.stage-done { color: var(--success); border-color: var(--success); }
+.badge.stage-wip { color: var(--warning); border-color: var(--warning); }
+
+/* ========== Section ========== */
+section {
+  margin-bottom: 32px;
+}
+
+section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+
+/* ========== 输入区 ========== */
+.input-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+textarea#message-input {
+  width: 100%;
+  min-height: 100px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+textarea#message-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.context-grid label {
+  display: block;
+}
+
+.context-grid label span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.context-grid select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.context-grid select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+button.primary {
+  background: var(--accent);
+  color: white;
+}
+
+button.primary:hover {
+  background: var(--accent-hover);
+}
+
+button.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========== 示例按钮 ========== */
+.examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.example-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.example-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ========== 结果展示 ========== */
+.result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 120px;
+}
+
+.result-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.tier-badge.PARSE { background: var(--parse-color); }
+.tier-badge.CHAT { background: var(--chat-color); }
+.tier-badge.COMPLEX { background: var(--complex-color); }
+
+.tier-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.result-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.result-meta strong {
+  color: var(--text-primary);
+}
+
+.override-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+
+/* ========== 信号分解表 ========== */
+.signals-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.signals-table th,
+.signals-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.signals-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contrib-bar {
+  display: inline-block;
+  height: 6px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.contrib-positive { background: var(--success); }
+.contrib-negative { background: var(--danger); }
+.contrib-zero { background: var(--text-muted); }
+
+/* ========== 审计追踪 ========== */
+.audit-trail {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", monospace;
+  font-size: 0.85rem;
+}
+
+.audit-trail .line {
+  padding: 2px 0;
+  color: var(--text-secondary);
+}
+
+.audit-trail .line::before {
+  content: "→ ";
+  color: var(--accent);
+}
+
+/* ========== 反馈区 ========== */
+.feedback-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  align-items: center;
+}
+
+.feedback-row span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+button.feedback-btn {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+button.feedback-btn.up { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
+button.feedback-btn.down { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+button.feedback-btn:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+button.feedback-btn.down:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.feedback-msg {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-left: 8px;
+}
+
+/* ========== 架构图 ========== */
+.architecture {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pipeline-stage {
+  flex: 1;
+  min-width: 140px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.pipeline-stage .stage-num {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.pipeline-stage .stage-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.pipeline-stage .stage-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.pipeline-arrow {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+/* ========== Tier 说明 ========== */
+.tier-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.tier-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  border-top: 3px solid;
+}
+
+.tier-card.parse { border-top-color: var(--parse-color); }
+.tier-card.chat { border-top-color: var(--chat-color); }
+.tier-card.complex { border-top-color: var(--complex-color); }
+
+.tier-card h3 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tier-card .tier-score {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.tier-card .tier-model {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.tier-card .tier-use {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* ========== Footer ========== */
+footer {
+  text-align: center;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 640px) {
+  header h1 { font-size: 1.6rem; }
+  .pipeline { flex-direction: column; }
+  .pipeline-arrow { transform: rotate(90deg); }
+  .result-meta { flex-direction: column; gap: 4px; }
+}

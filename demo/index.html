@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether-Agent v2 — 路由引擎演示</title>
+  <meta name="description" content="零 LLM 调用的确定性路由引擎在线演示">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- ========== Header ========== -->
+    <header>
+      <h1>Aether-Agent v2</h1>
+      <p class="subtitle">零 LLM 调用的确定性路由引擎 · 在线演示</p>
+      <div class="badges">
+        <span class="badge stage-done">Stage 1 路由引擎 已完成</span>
+        <span class="badge stage-wip">Stage 2 双层记忆 开发中</span>
+        <span class="badge">纯前端实现 · 无后端依赖</span>
+      </div>
+    </header>
+
+    <!-- ========== 架构概览 ========== -->
+    <section>
+      <h2>4 阶段确定性路由流水线</h2>
+      <div class="architecture">
+        <div class="pipeline">
+          <div class="pipeline-stage">
+            <div class="stage-num">1</div>
+            <div class="stage-name">信号提取</div>
+            <div class="stage-desc">7 个确定性提取器<br>纯函数 · 零 LLM</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="stage-num">2</div>
+            <div class="stage-name">加权评分</div>
+            <div class="stage-desc">0-100 复杂度分数<br>权重可调</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="stage-num">3</div>
+            <div class="stage-name">反馈调整</div>
+            <div class="stage-desc">用户点赞/点踩<br>自适应学习</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="stage-num">4</div>
+            <div class="stage-name">策略覆盖</div>
+            <div class="stage-desc">YAML 规则<br>预算护栏</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Tier 说明 ========== -->
+    <section>
+      <h2>三级模型分层</h2>
+      <div class="tier-cards">
+        <div class="tier-card parse">
+          <h3>PARSE</h3>
+          <div class="tier-score">分数 ≤ 35</div>
+          <div class="tier-model">llama3:8b</div>
+          <div class="tier-use">翻译、抽取、解析、简短命令</div>
+        </div>
+        <div class="tier-card chat">
+          <h3>CHAT</h3>
+          <div class="tier-score">分数 36 ~ 55</div>
+          <div class="tier-model">gpt-4o-mini</div>
+          <div class="tier-use">日常对话、简单问答</div>
+        </div>
+        <div class="tier-card complex">
+          <h3>COMPLEX</h3>
+          <div class="tier-score">分数 > 55</div>
+          <div class="tier-model">gpt-4o</div>
+          <div class="tier-use">推理、代码生成、多步任务</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 交互演示区 ========== -->
+    <section>
+      <h2>在线体验路由引擎</h2>
+      <div class="input-card">
+        <textarea id="message-input" placeholder="输入一条消息，看看路由引擎如何决策...&#10;&#10;例如：translate this to english&#10;或者：请分析并对比 Redis 令牌桶和滑动窗口限流器的权衡"></textarea>
+
+        <div class="examples">
+          <button class="example-btn" data-msg="translate this to english">翻译命令 → PARSE</button>
+          <button class="example-btn" data-msg="parse this JSON for me">解析命令 → PARSE</button>
+          <button class="example-btn" data-msg="hello, how are you today?">闲聊问候 → CHAT</button>
+          <button class="example-btn" data-msg="how do I build a rate limiter in Redis?">技术问题 → CHAT</button>
+          <button class="example-btn" data-msg="Please analyze and compare the trade-offs between a Redis token bucket and a sliding window rate limiter. Walk through the design step by step.">深度分析 → COMPLEX</button>
+          <button class="example-btn" data-msg="fix this bug" data-task-type="coding" data-phase="implementation">编码任务+策略 → COMPLEX</button>
+        </div>
+
+        <div class="context-grid">
+          <label>
+            <span>任务类型 (task_type)</span>
+            <select id="task-type">
+              <option value="">— 无 —</option>
+              <option value="coding">coding</option>
+              <option value="support">support</option>
+              <option value="general">general</option>
+            </select>
+          </label>
+          <label>
+            <span>项目阶段 (project_phase)</span>
+            <select id="project-phase">
+              <option value="">— 无 —</option>
+              <option value="planning">planning</option>
+              <option value="implementation">implementation</option>
+              <option value="testing">testing</option>
+            </select>
+          </label>
+          <label>
+            <span>用户角色 (user_role)</span>
+            <select id="user-role">
+              <option value="">— 无 —</option>
+              <option value="engineer">engineer</option>
+              <option value="analyst">analyst</option>
+              <option value="user">user</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="route-btn">路由分析</button>
+          <button class="secondary" id="clear-btn">清空</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 结果展示 ========== -->
+    <section>
+      <h2>路由决策结果</h2>
+      <div class="result-card" id="result-card">
+        <div class="result-empty">输入消息并点击「路由分析」查看决策结果</div>
+      </div>
+    </section>
+
+    <!-- ========== Footer ========== -->
+    <footer>
+      <p>Aether-Agent v2 · 基于 LangChain 框架的自进化数字人 AI 系统</p>
+      <p style="margin-top: 8px;">
+        <a href="https://github.com/entropy-reverser/Aether-Agent" target="_blank" rel="noopener">GitHub 仓库</a>
+        · 本演示为前端纯 JS 实现，与 Python 后端算法 1:1 对齐
+      </p>
+    </footer>
+
+  </div>
+
+  <script src="js/routing-engine.js"></script>
+  <script>
+    // ========== UI 交互逻辑 ==========
+    const $ = (id) => document.getElementById(id);
+    const messageInput = $("message-input");
+    const routeBtn = $("route-btn");
+    const clearBtn = $("clear-btn");
+    const resultCard = $("result-card");
+    const taskTypeSel = $("task-type");
+    const projectPhaseSel = $("project-phase");
+    const userRoleSel = $("user-role");
+
+    // 示例按钮：点击填充消息和上下文
+    document.querySelectorAll(".example-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        messageInput.value = btn.dataset.msg;
+        if (btn.dataset.taskType) taskTypeSel.value = btn.dataset.taskType;
+        if (btn.dataset.phase) projectPhaseSel.value = btn.dataset.phase;
+        messageInput.focus();
+      });
+    });
+
+    // 清空按钮
+    clearBtn.addEventListener("click", () => {
+      messageInput.value = "";
+      taskTypeSel.value = "";
+      projectPhaseSel.value = "";
+      userRoleSel.value = "";
+      resultCard.innerHTML = '<div class="result-empty">输入消息并点击「路由分析」查看决策结果</div>';
+    });
+
+    // 路由分析按钮
+    routeBtn.addEventListener("click", () => {
+      const message = messageInput.value.trim();
+      if (!message) {
+        alert("请输入消息内容");
+        return;
+      }
+
+      const ctx = {
+        taskType: taskTypeSel.value || null,
+        projectPhase: projectPhaseSel.value || null,
+        userRole: userRoleSel.value || null,
+      };
+
+      try {
+        const decision = window.AetherEngine.route(message, ctx);
+        renderResult(decision, message);
+      } catch (err) {
+        resultCard.innerHTML = `<div class="result-empty" style="color: var(--danger);">错误: ${err.message}</div>`;
+      }
+    });
+
+    // 回车快捷键 (Ctrl+Enter)
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        routeBtn.click();
+      }
+    });
+
+    // ========== 渲染结果 ==========
+    function renderResult(decision, originalMessage) {
+      const tier = decision.tier;
+      const overrideTag = decision.overridden
+        ? '<span class="override-tag">策略覆盖</span>'
+        : "";
+
+      // 信号分解表
+      const signalsRows = decision.signalResults.map((s) => {
+        const weight = window.AetherEngine.SIGNAL_WEIGHTS[s.name] || 0;
+        const weightedPts = (s.contribution * weight).toFixed(4);
+        const barClass = s.contribution > 0 ? "contrib-positive"
+                       : s.contribution < 0 ? "contrib-negative"
+                       : "contrib-zero";
+        const barWidth = Math.min(60, Math.abs(s.contribution) * 60);
+        const sign = s.contribution > 0 ? "+" : "";
+        return `
+          <tr>
+            <td><code>${s.name}</code></td>
+            <td>${s.raw}</td>
+            <td>
+              <span class="contrib-bar ${barClass}" style="width: ${barWidth}px"></span>
+              ${sign}${s.contribution.toFixed(3)}
+            </td>
+            <td>${weight.toFixed(2)}</td>
+            <td>${weightedPts}</td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${s.note}</td>
+          </tr>
+        `;
+      }).join("");
+
+      // 审计追踪
+      const auditLines = decision.auditReasons.map((r) =>
+        `<div class="line">${r}</div>`
+      ).join("");
+
+      resultCard.innerHTML = `
+        <div class="result-header">
+          <span class="tier-badge ${tier.name}">
+            <span class="tier-dot"></span>
+            ${tier.name} · ${tier.label}
+          </span>
+          ${overrideTag}
+          <div class="result-meta">
+            <span>分数: <strong>${decision.score.toFixed(1)}</strong>/100</span>
+            <span>模型: <strong>${decision.model}</strong></span>
+          </div>
+        </div>
+
+        <table class="signals-table">
+          <thead>
+            <tr>
+              <th>信号</th>
+              <th>原始值</th>
+              <th>贡献值</th>
+              <th>权重</th>
+              <th>加权分</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>${signalsRows}</tbody>
+        </table>
+
+        <div class="audit-trail">
+          <div style="color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem;">审计追踪:</div>
+          ${auditLines}
+        </div>
+
+        <div class="feedback-row">
+          <span>这个路由决策是否合理?</span>
+          <button class="feedback-btn up" id="fb-up">👍 合理</button>
+          <button class="feedback-btn down" id="fb-down">👎 不合理</button>
+          <span class="feedback-msg" id="fb-msg"></span>
+        </div>
+      `;
+
+      // 绑定反馈按钮
+      const fbMsg = $("fb-msg");
+      $("fb-up").addEventListener("click", () => {
+        window.AetherEngine.recordFeedback(originalMessage, true);
+        fbMsg.textContent = "已记录正向反馈，后续相似消息分数将微调上升";
+        fbMsg.style.color = "var(--success)";
+        disableFeedbackBtns();
+      });
+      $("fb-down").addEventListener("click", () => {
+        window.AetherEngine.recordFeedback(originalMessage, false);
+        fbMsg.textContent = "已记录负向反馈，后续相似消息分数将微调下降";
+        fbMsg.style.color = "var(--danger)";
+        disableFeedbackBtns();
+      });
+
+      function disableFeedbackBtns() {
+        $("fb-up").disabled = true;
+        $("fb-down").disabled = true;
+      }
+    }
+  </script>
+</body>
+</html>
