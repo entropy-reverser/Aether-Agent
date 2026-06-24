@@ -54,3 +54,42 @@ class HealthResponse(BaseModel):
 
     status: str
     version: str
+
+
+# --- Wiki schemas (Stage 2) ---
+
+
+class FactIn(BaseModel):
+    """Request body for POST /api/wiki/facts — add one manual fact."""
+
+    subject: str = Field(..., min_length=1, max_length=200)
+    predicate: str = Field(..., min_length=1, max_length=200)
+    object: str = Field(..., min_length=1, max_length=1000)
+    tags: list[str] = Field(default_factory=list)
+
+
+class FactOut(BaseModel):
+    """One fact in API responses."""
+
+    id: str
+    subject: str
+    predicate: str
+    object: str
+    source: str
+    confidence: float
+    created_at: float
+    tags: list[str]
+
+
+class WikiQueryHit(BaseModel):
+    """One hit from GET /api/wiki/query."""
+
+    fact: FactOut
+    score: float
+
+
+class ExtractRequest(BaseModel):
+    """Request body for POST /api/wiki/extract — extract facts from turns."""
+
+    turns: list[str] = Field(..., min_length=1)
+    confidence: float = Field(default=0.7, ge=0.0, le=1.0)
