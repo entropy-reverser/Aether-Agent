@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aether-Agent v2 — 路由引擎演示</title>
-  <meta name="description" content="零 LLM 调用的确定性路由引擎在线演示">
+  <title>Aether-Agent v2 — 自生长 Wiki + 路由引擎演示</title>
+  <meta name="description" content="零 LLM 路由引擎 + 自生长 Wiki 长期记忆系统在线演示">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -13,89 +13,207 @@
     <!-- ========== Header ========== -->
     <header>
       <h1>Aether-Agent v2</h1>
-      <p class="subtitle">零 LLM 调用的确定性路由引擎 · 在线演示</p>
+      <p class="subtitle">自生长 Wiki 长期记忆 · 零 LLM 路由引擎 · 在线演示</p>
       <div class="badges">
         <span class="badge stage-done">Stage 1 路由引擎 已完成</span>
-        <span class="badge stage-wip">Stage 2 双层记忆 开发中</span>
+        <span class="badge stage-done">Stage 2 自生长 Wiki 已完成</span>
+        <span class="badge stage-wip">Stage 3 LangGraph 规划中</span>
         <span class="badge">纯前端实现 · 无后端依赖</span>
       </div>
     </header>
 
-    <!-- ========== 架构概览 ========== -->
+    <!-- ========== 系统架构图 (LangGraph 状态机) ========== -->
     <section>
-      <h2>4 阶段确定性路由流水线</h2>
+      <h2>系统架构 — LangGraph 状态机编排</h2>
       <div class="architecture">
-        <div class="pipeline">
-          <div class="pipeline-stage">
-            <div class="stage-num">1</div>
-            <div class="stage-name">信号提取</div>
-            <div class="stage-desc">7 个确定性提取器<br>纯函数 · 零 LLM</div>
+        <div class="graph-canvas">
+          <svg viewBox="0 0 900 420" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+              </marker>
+              <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5"
+                      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
+              </marker>
+            </defs>
+
+            <!-- 用户输入 -->
+            <g class="graph-node input-node">
+              <rect x="30" y="180" width="120" height="60" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+              <text x="90" y="205" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="600">用户输入</text>
+              <text x="90" y="222" text-anchor="middle" fill="#94a3b8" font-size="10">message + ctx</text>
+            </g>
+
+            <!-- 路由引擎 (Stage 1) -->
+            <g class="graph-node">
+              <rect x="210" y="140" width="160" height="140" rx="12" fill="#0f172a" stroke="#06b6d4" stroke-width="2" stroke-dasharray="4 2"/>
+              <text x="290" y="162" text-anchor="middle" fill="#06b6d4" font-size="12" font-weight="600">Stage 1: 路由引擎</text>
+              <rect x="225" y="175" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="290" y="191" text-anchor="middle" fill="#f1f5f9" font-size="10">信号提取 (7维)</text>
+              <rect x="225" y="205" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="290" y="221" text-anchor="middle" fill="#f1f5f9" font-size="10">加权评分 0-100</text>
+              <rect x="225" y="235" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="290" y="251" text-anchor="middle" fill="#f1f5f9" font-size="10">策略覆盖</text>
+            </g>
+
+            <!-- 条件分支 -->
+            <g class="graph-node decision-node">
+              <polygon points="450,210 490,180 530,210 490,240" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+              <text x="490" y="214" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">Tier?</text>
+            </g>
+
+            <!-- 三个模型层级 -->
+            <g class="graph-node">
+              <rect x="580" y="80" width="130" height="50" rx="8" fill="#1e293b" stroke="#06b6d4" stroke-width="2"/>
+              <text x="645" y="100" text-anchor="middle" fill="#06b6d4" font-size="11" font-weight="600">PARSE</text>
+              <text x="645" y="116" text-anchor="middle" fill="#94a3b8" font-size="9">llama3:8b</text>
+            </g>
+            <g class="graph-node">
+              <rect x="580" y="185" width="130" height="50" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+              <text x="645" y="205" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">CHAT</text>
+              <text x="645" y="221" text-anchor="middle" fill="#94a3b8" font-size="9">gpt-4o-mini</text>
+            </g>
+            <g class="graph-node">
+              <rect x="580" y="290" width="130" height="50" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+              <text x="645" y="310" text-anchor="middle" fill="#a855f7" font-size="11" font-weight="600">COMPLEX</text>
+              <text x="645" y="326" text-anchor="middle" fill="#94a3b8" font-size="9">gpt-4o</text>
+            </g>
+
+            <!-- 对话响应 -->
+            <g class="graph-node">
+              <rect x="760" y="180" width="110" height="60" rx="30" fill="#1e293b" stroke="#22c55e" stroke-width="2"/>
+              <text x="815" y="205" text-anchor="middle" fill="#22c55e" font-size="12" font-weight="600">对话响应</text>
+              <text x="815" y="222" text-anchor="middle" fill="#94a3b8" font-size="10">response</text>
+            </g>
+
+            <!-- Stage 2: Wiki 长期记忆 -->
+            <g class="graph-node wiki-node">
+              <rect x="210" y="330" width="480" height="80" rx="12" fill="#0f172a" stroke="#a855f7" stroke-width="2" stroke-dasharray="4 2"/>
+              <text x="450" y="352" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="600">Stage 2: 自生长 Wiki 长期记忆</text>
+              <rect x="225" y="362" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="290" y="378" text-anchor="middle" fill="#f1f5f9" font-size="10">事实提取 (双语正则)</text>
+              <rect x="365" y="362" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="430" y="378" text-anchor="middle" fill="#f1f5f9" font-size="10">内容哈希去重</text>
+              <rect x="505" y="362" width="130" height="24" rx="4" fill="#1e293b" stroke="#334155"/>
+              <text x="570" y="378" text-anchor="middle" fill="#f1f5f9" font-size="10">Markdown 持久化</text>
+            </g>
+
+            <!-- 连线 -->
+            <line x1="150" y1="210" x2="205" y2="210" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-accent)"/>
+            <line x1="370" y1="210" x2="445" y2="210" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="530" y1="200" x2="575" y2="115" stroke="#06b6d4" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="530" y1="210" x2="575" y2="210" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="530" y1="225" x2="575" y2="305" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="710" y1="105" x2="755" y2="195" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="710" y1="210" x2="755" y2="210" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="710" y1="315" x2="755" y2="225" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <!-- 响应 -> Wiki 提取 -->
+            <path d="M 815 240 Q 815 330 690 360" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="4 2" marker-end="url(#arrow)"/>
+            <text x="780" y="290" fill="#a855f7" font-size="9">提取事实</text>
+
+            <!-- Wiki -> 路由 (记忆注入) -->
+            <path d="M 290 330 Q 290 290 290 285" fill="none" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="2 2" marker-end="url(#arrow)"/>
+            <text x="180" y="320" fill="#a855f7" font-size="9">记忆注入</text>
+          </svg>
+        </div>
+        <div class="graph-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>输入流</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#06b6d4"></span>Stage 1 路由</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>条件分支</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#a855f7"></span>Stage 2 Wiki</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>输出</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Tab 切换 ========== -->
+    <section>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="wiki">自生长 Wiki 演示</button>
+        <button class="tab-btn" data-tab="routing">路由引擎演示</button>
+      </div>
+    </section>
+
+    <!-- ========== Tab 1: Wiki 自生长记忆演示 ========== -->
+    <section id="tab-wiki" class="tab-content active">
+      <h2>自生长 Wiki — 对话到知识的自动转化</h2>
+      <p class="section-desc">输入对话内容，系统自动提取事实并写入 Markdown 知识库。支持内容哈希去重、按主题归档、语义查询。</p>
+
+      <div class="wiki-grid">
+        <!-- 左侧: 对话输入 + 提取 -->
+        <div class="wiki-panel">
+          <h3>对话输入</h3>
+          <textarea id="wiki-input" placeholder="输入对话内容，每行一条消息...&#10;&#10;例如:&#10;my name is Alice&#10;I prefer dark mode&#10;the project uses Python 3.12&#10;remember that deployment is on Fridays"></textarea>
+
+          <div class="wiki-examples">
+            <button class="example-btn" data-wiki="my name is Alice&#10;I prefer dark mode&#10;I use Python 3.12&#10;the project uses FastAPI">示例 1: 个人偏好</button>
+            <button class="example-btn" data-wiki="我叫张三&#10;I prefer VS Code&#10;the project is a web service&#10;remember that API rate limit is 100/min">示例 2: 项目信息</button>
+            <button class="example-btn" data-wiki="I love TypeScript&#10;the project uses Docker&#10;I work with Kubernetes&#10;remember that backups run at 3am">示例 3: 技术栈</button>
           </div>
-          <div class="pipeline-arrow">→</div>
-          <div class="pipeline-stage">
-            <div class="stage-num">2</div>
-            <div class="stage-name">加权评分</div>
-            <div class="stage-desc">0-100 复杂度分数<br>权重可调</div>
+
+          <div class="button-row">
+            <button class="primary" id="wiki-extract-btn">提取事实并写入 Wiki</button>
+            <button class="secondary" id="wiki-clear-btn">清空输入</button>
           </div>
-          <div class="pipeline-arrow">→</div>
-          <div class="pipeline-stage">
-            <div class="stage-num">3</div>
-            <div class="stage-name">反馈调整</div>
-            <div class="stage-desc">用户点赞/点踩<br>自适应学习</div>
+        </div>
+
+        <!-- 右侧: 提取结果 -->
+        <div class="wiki-panel">
+          <h3>提取的事实 (Facts)</h3>
+          <div id="wiki-facts-result" class="wiki-result-area">
+            <div class="result-empty">点击「提取事实」查看从对话中提取的知识</div>
           </div>
-          <div class="pipeline-arrow">→</div>
-          <div class="pipeline-stage">
-            <div class="stage-num">4</div>
-            <div class="stage-name">策略覆盖</div>
-            <div class="stage-desc">YAML 规则<br>预算护栏</div>
+        </div>
+      </div>
+
+      <!-- Wiki 知识库浏览 -->
+      <div class="wiki-browser">
+        <div class="wiki-browser-header">
+          <h3>Wiki 知识库</h3>
+          <div class="wiki-stats">
+            <span id="wiki-fact-count">0</span> 条事实 ·
+            <span id="wiki-subject-count">0</span> 个主题
+            <button class="secondary small-btn" id="wiki-reset-btn">重置知识库</button>
+          </div>
+        </div>
+
+        <div class="wiki-query-row">
+          <input type="text" id="wiki-query-input" placeholder="输入查询关键词，如 'dark mode' 或 'Python'...">
+          <button class="primary" id="wiki-query-btn">查询</button>
+        </div>
+
+        <div id="wiki-query-result" class="wiki-query-result"></div>
+
+        <div class="wiki-docs-section">
+          <h4>Markdown 文档 (按主题归档)</h4>
+          <div id="wiki-docs" class="wiki-docs-grid">
+            <div class="result-empty">知识库为空，先提取一些事实吧</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ========== Tier 说明 ========== -->
-    <section>
-      <h2>三级模型分层</h2>
-      <div class="tier-cards">
-        <div class="tier-card parse">
-          <h3>PARSE</h3>
-          <div class="tier-score">分数 ≤ 35</div>
-          <div class="tier-model">llama3:8b</div>
-          <div class="tier-use">翻译、抽取、解析、简短命令</div>
-        </div>
-        <div class="tier-card chat">
-          <h3>CHAT</h3>
-          <div class="tier-score">分数 36 ~ 55</div>
-          <div class="tier-model">gpt-4o-mini</div>
-          <div class="tier-use">日常对话、简单问答</div>
-        </div>
-        <div class="tier-card complex">
-          <h3>COMPLEX</h3>
-          <div class="tier-score">分数 > 55</div>
-          <div class="tier-model">gpt-4o</div>
-          <div class="tier-use">推理、代码生成、多步任务</div>
-        </div>
-      </div>
-    </section>
+    <!-- ========== Tab 2: 路由引擎演示 ========== -->
+    <section id="tab-routing" class="tab-content">
+      <h2>路由引擎 — 零 LLM 模型选择</h2>
+      <p class="section-desc">输入消息，系统通过 7 维信号提取 + 加权评分自动选择最合适的模型层级。</p>
 
-    <!-- ========== 交互演示区 ========== -->
-    <section>
-      <h2>在线体验路由引擎</h2>
       <div class="input-card">
         <textarea id="message-input" placeholder="输入一条消息，看看路由引擎如何决策...&#10;&#10;例如：translate this to english&#10;或者：请分析并对比 Redis 令牌桶和滑动窗口限流器的权衡"></textarea>
 
         <div class="examples">
           <button class="example-btn" data-msg="translate this to english">翻译命令 → PARSE</button>
-          <button class="example-btn" data-msg="parse this JSON for me">解析命令 → PARSE</button>
           <button class="example-btn" data-msg="hello, how are you today?">闲聊问候 → CHAT</button>
-          <button class="example-btn" data-msg="how do I build a rate limiter in Redis?">技术问题 → CHAT</button>
           <button class="example-btn" data-msg="Please analyze and compare the trade-offs between a Redis token bucket and a sliding window rate limiter. Walk through the design step by step.">深度分析 → COMPLEX</button>
           <button class="example-btn" data-msg="fix this bug" data-task-type="coding" data-phase="implementation">编码任务+策略 → COMPLEX</button>
         </div>
 
         <div class="context-grid">
           <label>
-            <span>任务类型 (task_type)</span>
+            <span>任务类型</span>
             <select id="task-type">
               <option value="">— 无 —</option>
               <option value="coding">coding</option>
@@ -104,21 +222,19 @@
             </select>
           </label>
           <label>
-            <span>项目阶段 (project_phase)</span>
+            <span>项目阶段</span>
             <select id="project-phase">
               <option value="">— 无 —</option>
               <option value="planning">planning</option>
               <option value="implementation">implementation</option>
-              <option value="testing">testing</option>
             </select>
           </label>
           <label>
-            <span>用户角色 (user_role)</span>
+            <span>用户角色</span>
             <select id="user-role">
               <option value="">— 无 —</option>
               <option value="engineer">engineer</option>
               <option value="analyst">analyst</option>
-              <option value="user">user</option>
             </select>
           </label>
         </div>
@@ -128,11 +244,7 @@
           <button class="secondary" id="clear-btn">清空</button>
         </div>
       </div>
-    </section>
 
-    <!-- ========== 结果展示 ========== -->
-    <section>
-      <h2>路由决策结果</h2>
       <div class="result-card" id="result-card">
         <div class="result-empty">输入消息并点击「路由分析」查看决策结果</div>
       </div>
@@ -144,6 +256,7 @@
       <p style="margin-top: 8px;">
         <a href="https://github.com/entropy-reverser/Aether-Agent" target="_blank" rel="noopener">GitHub 仓库</a>
         · 本演示为前端纯 JS 实现，与 Python 后端算法 1:1 对齐
+        · 126 个单元测试 · 92% 覆盖率
       </p>
     </footer>
 
@@ -151,132 +264,205 @@
 
   <script src="js/routing-engine.js"></script>
   <script>
-    // ========== UI 交互逻辑 ==========
     const $ = (id) => document.getElementById(id);
-    const messageInput = $("message-input");
-    const routeBtn = $("route-btn");
-    const clearBtn = $("clear-btn");
-    const resultCard = $("result-card");
-    const taskTypeSel = $("task-type");
-    const projectPhaseSel = $("project-phase");
-    const userRoleSel = $("user-role");
+    const Aether = window.AetherEngine;
+    const wikiStore = new Aether.WikiStore();
 
-    // 示例按钮：点击填充消息和上下文
-    document.querySelectorAll(".example-btn").forEach((btn) => {
+    // ========== Tab 切换 ==========
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        messageInput.value = btn.dataset.msg;
-        if (btn.dataset.taskType) taskTypeSel.value = btn.dataset.taskType;
-        if (btn.dataset.phase) projectPhaseSel.value = btn.dataset.phase;
-        messageInput.focus();
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+        btn.classList.add("active");
+        $("tab-" + btn.dataset.tab).classList.add("active");
       });
     });
 
-    // 清空按钮
-    clearBtn.addEventListener("click", () => {
+    // ========== Wiki Demo ==========
+    const wikiInput = $("wiki-input");
+    const wikiFactsResult = $("wiki-facts-result");
+
+    document.querySelectorAll("[data-wiki]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        wikiInput.value = btn.dataset.wiki.replace(/&#10;/g, "\n");
+      });
+    });
+
+    $("wiki-extract-btn").addEventListener("click", () => {
+      const text = wikiInput.value.trim();
+      if (!text) { alert("请输入对话内容"); return; }
+      const turns = text.split("\n").map((t) => t.trim()).filter(Boolean);
+      const facts = Aether.extractFromTurns(turns, 0.7);
+      const added = wikiStore.addFacts(facts);
+
+      // 渲染提取结果
+      if (facts.length === 0) {
+        wikiFactsResult.innerHTML = '<div class="result-empty">未提取到事实 — 尝试包含 "my name is", "I prefer", "the project uses" 等模式</div>';
+      } else {
+        wikiFactsResult.innerHTML = `
+          <div class="extract-summary">提取到 <strong>${facts.length}</strong> 条事实，新增 <strong>${added}</strong> 条（${facts.length - added} 条重复去重）</div>
+          <div class="facts-list">
+            ${facts.map((f) => `
+              <div class="fact-item ${wikiStore.listFacts().some((x) => x.id === f.id) ? "new" : "dup"}">
+                <div class="fact-header">
+                  <span class="fact-subject">${f.subject}</span>
+                  <span class="fact-predicate">${f.predicate}</span>
+                  <span class="fact-confidence">${(f.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="fact-object">${f.object}</div>
+                <div class="fact-id">id: ${f.id}</div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+      refreshWikiBrowser();
+    });
+
+    $("wiki-clear-btn").addEventListener("click", () => {
+      wikiInput.value = "";
+      wikiFactsResult.innerHTML = '<div class="result-empty">点击「提取事实」查看从对话中提取的知识</div>';
+    });
+
+    $("wiki-query-btn").addEventListener("click", () => {
+      const q = $("wiki-query-input").value.trim();
+      if (!q) return;
+      const results = wikiStore.query(q, 10);
+      const container = $("wiki-query-result");
+      if (results.length === 0) {
+        container.innerHTML = '<div class="result-empty">无匹配结果</div>';
+      } else {
+        container.innerHTML = `
+          <div class="query-summary">找到 <strong>${results.length}</strong> 条相关事实</div>
+          <div class="query-list">
+            ${results.map((r) => `
+              <div class="query-hit">
+                <div class="hit-score-bar" style="width: ${r.score * 100}%"></div>
+                <div class="hit-content">
+                  <span class="hit-subject">${r.fact.subject}</span>
+                  <span class="hit-predicate">${r.fact.predicate}:</span>
+                  <span class="hit-object">${r.fact.object}</span>
+                  <span class="hit-score">${r.score.toFixed(3)}</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+    });
+
+    $("wiki-query-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") $("wiki-query-btn").click();
+    });
+
+    $("wiki-reset-btn").addEventListener("click", () => {
+      if (confirm("确定清空所有 Wiki 知识库？")) {
+        wikiStore.clear();
+        refreshWikiBrowser();
+        $("wiki-query-result").innerHTML = "";
+        wikiFactsResult.innerHTML = '<div class="result-empty">知识库已清空</div>';
+      }
+    });
+
+    function refreshWikiBrowser() {
+      $("wiki-fact-count").textContent = wikiStore.count();
+      $("wiki-subject-count").textContent = wikiStore.listSubjects().length;
+      const docs = wikiStore.exportMarkdown();
+      const docsContainer = $("wiki-docs");
+      const subjects = Object.keys(docs);
+      if (subjects.length === 0) {
+        docsContainer.innerHTML = '<div class="result-empty">知识库为空，先提取一些事实吧</div>';
+      } else {
+        docsContainer.innerHTML = subjects.map((name) => `
+          <div class="wiki-doc-card">
+            <div class="doc-header">
+              <span class="doc-name">${name}.md</span>
+              <span class="doc-fact-count">${wikiStore.listFacts(name).length} facts</span>
+            </div>
+            <pre class="doc-content">${docs[name].replace(/</g, "&lt;")}</pre>
+          </div>
+        `).join("");
+      }
+    }
+
+    refreshWikiBrowser();
+
+    // ========== Routing Demo ==========
+    const messageInput = $("message-input");
+
+    document.querySelectorAll("[data-msg]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        messageInput.value = btn.dataset.msg;
+        if (btn.dataset.taskType) $("task-type").value = btn.dataset.taskType;
+        if (btn.dataset.phase) $("project-phase").value = btn.dataset.phase;
+      });
+    });
+
+    $("clear-btn").addEventListener("click", () => {
       messageInput.value = "";
-      taskTypeSel.value = "";
-      projectPhaseSel.value = "";
-      userRoleSel.value = "";
-      resultCard.innerHTML = '<div class="result-empty">输入消息并点击「路由分析」查看决策结果</div>';
+      $("task-type").value = "";
+      $("project-phase").value = "";
+      $("user-role").value = "";
+      $("result-card").innerHTML = '<div class="result-empty">输入消息并点击「路由分析」查看决策结果</div>';
     });
 
-    // 路由分析按钮
-    routeBtn.addEventListener("click", () => {
+    $("route-btn").addEventListener("click", () => {
       const message = messageInput.value.trim();
-      if (!message) {
-        alert("请输入消息内容");
-        return;
-      }
-
+      if (!message) { alert("请输入消息内容"); return; }
       const ctx = {
-        taskType: taskTypeSel.value || null,
-        projectPhase: projectPhaseSel.value || null,
-        userRole: userRoleSel.value || null,
+        taskType: $("task-type").value || null,
+        projectPhase: $("project-phase").value || null,
+        userRole: $("user-role").value || null,
       };
-
       try {
-        const decision = window.AetherEngine.route(message, ctx);
-        renderResult(decision, message);
+        const decision = Aether.route(message, ctx);
+        renderRoutingResult(decision, message);
       } catch (err) {
-        resultCard.innerHTML = `<div class="result-empty" style="color: var(--danger);">错误: ${err.message}</div>`;
+        $("result-card").innerHTML = `<div class="result-empty" style="color: var(--danger);">错误: ${err.message}</div>`;
       }
     });
 
-    // 回车快捷键 (Ctrl+Enter)
     messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        routeBtn.click();
-      }
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("route-btn").click();
     });
 
-    // ========== 渲染结果 ==========
-    function renderResult(decision, originalMessage) {
+    function renderRoutingResult(decision, originalMessage) {
       const tier = decision.tier;
-      const overrideTag = decision.overridden
-        ? '<span class="override-tag">策略覆盖</span>'
-        : "";
-
-      // 信号分解表
+      const overrideTag = decision.overridden ? '<span class="override-tag">策略覆盖</span>' : "";
       const signalsRows = decision.signalResults.map((s) => {
-        const weight = window.AetherEngine.SIGNAL_WEIGHTS[s.name] || 0;
+        const weight = Aether.SIGNAL_WEIGHTS[s.name] || 0;
         const weightedPts = (s.contribution * weight).toFixed(4);
-        const barClass = s.contribution > 0 ? "contrib-positive"
-                       : s.contribution < 0 ? "contrib-negative"
-                       : "contrib-zero";
+        const barClass = s.contribution > 0 ? "contrib-positive" : s.contribution < 0 ? "contrib-negative" : "contrib-zero";
         const barWidth = Math.min(60, Math.abs(s.contribution) * 60);
         const sign = s.contribution > 0 ? "+" : "";
-        return `
-          <tr>
-            <td><code>${s.name}</code></td>
-            <td>${s.raw}</td>
-            <td>
-              <span class="contrib-bar ${barClass}" style="width: ${barWidth}px"></span>
-              ${sign}${s.contribution.toFixed(3)}
-            </td>
-            <td>${weight.toFixed(2)}</td>
-            <td>${weightedPts}</td>
-            <td style="color: var(--text-muted); font-size: 0.8rem;">${s.note}</td>
-          </tr>
-        `;
+        return `<tr>
+          <td><code>${s.name}</code></td>
+          <td>${s.raw}</td>
+          <td><span class="contrib-bar ${barClass}" style="width: ${barWidth}px"></span>${sign}${s.contribution.toFixed(3)}</td>
+          <td>${weight.toFixed(2)}</td>
+          <td>${weightedPts}</td>
+          <td style="color: var(--text-muted); font-size: 0.8rem;">${s.note}</td>
+        </tr>`;
       }).join("");
+      const auditLines = decision.auditReasons.map((r) => `<div class="line">${r}</div>`).join("");
 
-      // 审计追踪
-      const auditLines = decision.auditReasons.map((r) =>
-        `<div class="line">${r}</div>`
-      ).join("");
-
-      resultCard.innerHTML = `
+      $("result-card").innerHTML = `
         <div class="result-header">
-          <span class="tier-badge ${tier.name}">
-            <span class="tier-dot"></span>
-            ${tier.name} · ${tier.label}
-          </span>
+          <span class="tier-badge ${tier.name}"><span class="tier-dot"></span>${tier.name} · ${tier.label}</span>
           ${overrideTag}
           <div class="result-meta">
             <span>分数: <strong>${decision.score.toFixed(1)}</strong>/100</span>
             <span>模型: <strong>${decision.model}</strong></span>
           </div>
         </div>
-
         <table class="signals-table">
-          <thead>
-            <tr>
-              <th>信号</th>
-              <th>原始值</th>
-              <th>贡献值</th>
-              <th>权重</th>
-              <th>加权分</th>
-              <th>说明</th>
-            </tr>
-          </thead>
+          <thead><tr><th>信号</th><th>原始值</th><th>贡献值</th><th>权重</th><th>加权分</th><th>说明</th></tr></thead>
           <tbody>${signalsRows}</tbody>
         </table>
-
         <div class="audit-trail">
           <div style="color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem;">审计追踪:</div>
           ${auditLines}
         </div>
-
         <div class="feedback-row">
           <span>这个路由决策是否合理?</span>
           <button class="feedback-btn up" id="fb-up">👍 合理</button>
@@ -285,25 +471,19 @@
         </div>
       `;
 
-      // 绑定反馈按钮
       const fbMsg = $("fb-msg");
       $("fb-up").addEventListener("click", () => {
-        window.AetherEngine.recordFeedback(originalMessage, true);
-        fbMsg.textContent = "已记录正向反馈，后续相似消息分数将微调上升";
+        Aether.recordFeedback(originalMessage, true);
+        fbMsg.textContent = "已记录正向反馈";
         fbMsg.style.color = "var(--success)";
-        disableFeedbackBtns();
+        $("fb-up").disabled = true; $("fb-down").disabled = true;
       });
       $("fb-down").addEventListener("click", () => {
-        window.AetherEngine.recordFeedback(originalMessage, false);
-        fbMsg.textContent = "已记录负向反馈，后续相似消息分数将微调下降";
+        Aether.recordFeedback(originalMessage, false);
+        fbMsg.textContent = "已记录负向反馈";
         fbMsg.style.color = "var(--danger)";
-        disableFeedbackBtns();
+        $("fb-up").disabled = true; $("fb-down").disabled = true;
       });
-
-      function disableFeedbackBtns() {
-        $("fb-up").disabled = true;
-        $("fb-down").disabled = true;
-      }
     }
   </script>
 </body>

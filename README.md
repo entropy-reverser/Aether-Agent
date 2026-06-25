@@ -34,16 +34,61 @@
 
 ### 当前状态
 
-> **Stage 1 已完成** — 零 LLM 分数路由引擎已可运行。
-> 记忆系统（Stage 2）、LangGraph 编排（Stage 3）、上下文管理模块（Stage 4-6）正在开发中。详见 [Roadmap](#roadmap) 和 [`PROGRESS.yaml`](PROGRESS.yaml)。
+> **Stage 0-2 已完成** — 项目基础 + 零 LLM 路由引擎 + 自生长 Wiki MVP 已交付（126 个测试通过，92% 覆盖率）。
+> LangGraph 编排（Stage 3）、上下文管理模块（Stage 4-6）正在规划中。详见 [Roadmap](#roadmap) 和 [`PROGRESS.yaml`](PROGRESS.yaml)。
 
 ---
 
 ## 核心特性
 
-### 1. 零 LLM 确定性路由引擎（已完成）
+### 1. 自生长 Wiki 长期记忆系统（Stage 2 已完成）
 
-项目的 **核心 IP**：通过 **确定性 4 阶段流水线** 为每条消息选择最合适的模型，**分类过程零 LLM 调用**。
+项目的**核心价值模块**：将 AI 对话交互自动沉淀为结构化知识库，让系统具备"越用越聪明"的能力。
+
+```
+对话轮次 → [提取器] 确定性双语正则 → Facts (带置信度)
+        → [存储]   内容哈希去重 → 按主题写入 Markdown 文档
+        → [查询]   子串匹配(1.0) + Jaccard 词重叠(0..1) → 排序结果
+        → [REST]   /api/wiki/{facts,query,extract,rebuild,export}
+```
+
+**关键设计决策：**
+
+| 决策 | 理由 |
+|------|------|
+| **Markdown 作为唯一事实来源**，向量索引为派生可重建产物 | 人类可审计、Git 友好、向量库损坏不丢数据 |
+| **可插拔 `WikiBackend` Protocol** | `LocalFilesystemBackend`（本地开发）+ `HttpBackend`（服务器部署预留），WikiStore 代码零改动 |
+| **内容哈希去重**：Fact.id = SHA1[:16] of `subject\|predicate\|object` | 重复提取同一事实为 no-op，大小写噪声不产生重复 |
+| **确定性提取器优先**：7 个双语正则模式（name/prefer/use/remember/project） | 测试无网络依赖；LLM 提取器（`LLMFactExtractor`）为 Stage 3 预留钩子 |
+| **无损 Markdown 往返**：`_render_markdown` ↔ `_parse_markdown` | 事实身份（内容哈希）在序列化/反序列化中保持一致 |
+
+**Wiki 数据模型：**
+
+```python
+@dataclass
+class Fact:
+    subject: str        # 事实主题 (如 "user", "project:aether")
+    predicate: str      # 关系/属性 (如 "prefers", "uses")
+    object: str         # 值 (如 "dark mode", "Python 3.12")
+    source: str         # 来源 ("extracted" / "manual" / "import")
+    confidence: float   # 提取置信度 [0, 1]
+    id: str             # 内容哈希 (自动生成，用于去重)
+```
+
+**Wiki REST API：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/wiki/facts?subject=` | 列出事实，可按主题过滤 |
+| `POST` | `/api/wiki/facts` | 手动添加单条事实 |
+| `GET` | `/api/wiki/query?q=&limit=` | 自然语言查询，返回排序命中 |
+| `POST` | `/api/wiki/extract` | 从对话轮次提取并存储事实 |
+| `POST` | `/api/wiki/rebuild` | 从 Markdown 重建内存索引 |
+| `GET` | `/api/wiki/export` | 导出全部文档为 `{name: markdown}` |
+
+### 2. 零 LLM 确定性路由引擎（Stage 1 已完成）
+
+项目的基础设施层：通过 **确定性 4 阶段流水线** 为每条消息选择最合适的模型，**分类过程零 LLM 调用**。
 
 ```
 消息 + RoutingContext → 信号提取(7个) → 加权评分(0-100) → 自适应反馈修正 → 策略覆盖 → RoutingDecision
@@ -145,15 +190,21 @@ agent_mvp/
 │   │   └── schemas.py              # Pydantic 请求/响应模型
 │   ├── core/
 │   │   ├── __init__.py
-│   │   └── routing/                # ★ 核心路由引擎
-│   │       ├── __init__.py         # 公共 API 导出 + 模块级单例
-│   │       ├── models.py           # RoutingDecision 数据模型
-│   │       ├── tiers.py            # Tier 枚举 + 模型映射 + 分数阈值
-│   │       ├── signals.py          # 7 个确定性信号提取器
-│   │       ├── scorer.py           # 加权求和评分器
-│   │       ├── feedback.py         # 自适应反馈存储
-│   │       ├── policy.py           # YAML 策略引擎 + 预算护栏
-│   │       └── router.py           # 路由编排器 (4 阶段流水线)
+│   │   ├── routing/                # ★ 路由引擎 (Stage 1)
+│   │   │   ├── __init__.py         # 公共 API 导出 + 模块级单例
+│   │   │   ├── models.py           # RoutingDecision 数据模型
+│   │   │   ├── tiers.py            # Tier 枚举 + 模型映射 + 分数阈值
+│   │   │   ├── signals.py          # 7 个确定性信号提取器
+│   │   │   ├── scorer.py           # 加权求和评分器
+│   │   │   ├── feedback.py         # 自适应反馈存储
+│   │   │   ├── policy.py           # YAML 策略引擎 + 预算护栏
+│   │   │   └── router.py           # 路由编排器 (4 阶段流水线)
+│   │   └── wiki/                   # ★ 自生长 Wiki 长期记忆 (Stage 2)
+│   │       ├── __init__.py         # 公共 API + 懒加载 wiki_store 单例
+│   │       ├── models.py           # Fact 数据模型 + WikiBackend Protocol
+│   │       ├── backends.py         # LocalFilesystemBackend + HttpBackend (REST 预留)
+│   │       ├── extractor.py        # 确定性双语正则提取器 + LLMFactExtractor 钩子
+│   │       └── store.py            # WikiStore: init/add/query/list/rebuild/export
 │   └── utils/
 │       ├── __init__.py
 │       └── logger.py               # Loguru 日志配置
@@ -319,9 +370,9 @@ make help           # 查看所有命令
 
 ---
 
-## API 参考 (Stage 1)
+## API 参考
 
-### 端点概览
+### 路由引擎 API (Stage 1)
 
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
@@ -363,6 +414,50 @@ make help           # 查看所有命令
 | `positive` | bool | 是 | `true`=点赞, `false`=点踩 |
 
 完整 Schema 定义见 [`app/api/schemas.py`](app/api/schemas.py)。
+
+### Wiki 长期记忆 API (Stage 2)
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/wiki/facts?subject=` | 列出事实，可按主题过滤 |
+| `POST` | `/api/wiki/facts` | 手动添加单条事实 (source=manual, confidence=1.0) |
+| `GET` | `/api/wiki/query?q=&limit=` | 自然语言查询，返回排序命中 |
+| `POST` | `/api/wiki/extract` | 从对话轮次提取并存储事实 |
+| `POST` | `/api/wiki/rebuild` | 从 Markdown 重建内存索引 |
+| `GET` | `/api/wiki/export` | 导出全部文档为 `{name: markdown}` |
+
+**POST `/api/wiki/extract` 请求示例：**
+
+```json
+{
+  "turns": [
+    "my name is Alice",
+    "I prefer dark mode",
+    "the project uses Python 3.12"
+  ],
+  "confidence": 0.7
+}
+```
+
+**GET `/api/wiki/query?q=dark%20mode` 响应示例：**
+
+```json
+[
+  {
+    "fact": {
+      "id": "a3f1b2c8d9e0f1a2",
+      "subject": "user",
+      "predicate": "prefers",
+      "object": "dark mode",
+      "source": "extracted",
+      "confidence": 0.7
+    },
+    "score": 1.0
+  }
+]
+```
+
+Wiki 模块代码见 [`app/core/wiki/`](app/core/wiki/)，REST 端点见 [`app/api/wiki_routes.py`](app/api/wiki_routes.py)。
 
 ---
 
@@ -763,13 +858,13 @@ gantt
 |------|------|------|-----------|----------|
 | **Stage 0** | 项目基础 | ✅ 完成 | 骨架代码、配置系统、开发工具链 | Ruff/mypy/pytest, pyproject.toml |
 | **Stage 1** | 路由引擎 | ✅ 完成 | 零 LLM 4 阶段确定性路由管道 | 7 维信号、加权评分、自适应反馈、YAML 策略 |
-| **Stage 2** | 双层记忆 | 🔨 开发中 | Redis 短期记忆 + ChromaDB/Markdown 长期 Wiki | 向量检索、自动摘要、Wiki 条目生成 |
-| **Stage 3** | LangGraph 编排 | 📋 规划 | 多步骤工作流编排 | 状态机、条件分支、人机协作循环 |
+| **Stage 2** | 自生长 Wiki | ✅ 完成 | Markdown 事实存储 + 双语正则提取器 + 5 个 REST 端点 | 内容哈希去重、可插拔 Backend Protocol、无损 Markdown 往返 |
+| **Stage 3** | LangGraph 编排 | 📋 规划 | 多步骤工作流编排 | 状态机、条件分支、人机协作循环、LLMFactExtractor 接入 |
 | **Stage 4** | 上下文管理 | 📋 规划 | 跨窗口上下文持久化和恢复 | 会话序列化、滑动窗口、压缩策略 |
 | **Stage 5** | 进度追踪 | 📋 规划 | `PROGRESS.yaml` 跨窗口状态同步 | 单一事实来源、原子更新、冲突解决 |
 | **Stage 6** | 任务管理 | 📋 规划 | `TASKS.jsonl` 任务持久化队列 | 增量写入、优先级排序、依赖关系 |
 | **Stage 7** | API 文档 | 📋 规划 | OpenAPI/Swagger 完整文档 | 交互式文档、SDK 生成、示例集合 |
-| **Stage 8** | CI/CD & 部署 | 📋 规划 | Docker 化 + 自动化发布流水线 | 多环境部署、健康检查、监控告警 |
+| **Stage 8** | CI/CD & 部署 | 📋 规划 | Docker 化 + 自动化发布流水线 + Web 端 Wiki | 多环境部署、健康检查、监控告警 |
 
 ### 远景目标
 
