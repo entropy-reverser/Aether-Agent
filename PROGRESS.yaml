@@ -9,13 +9,13 @@
 $schema: progress.v1
 project_name: aether-agent-v2
 project_version: 0.2.0
-last_updated: "2026-06-23T00:00:00Z"
-last_updated_by: "agent-window-1"
-last_window_id: "window-1"
+last_updated: "2026-06-24T00:00:00Z"
+last_updated_by: "agent-window-2"
+last_window_id: "window-2"
 
 # --- High-level state ---
 current_stage: stage-2-memory
-overall_progress: 22%   # (2 of 9 stages complete) * 100
+overall_progress: 33%   # routing + wiki done; graph/context/progress/tasks/api/cicd remain
 
 # --- Stage status ---
 stages:
@@ -57,24 +57,24 @@ stages:
     status: in_progress
     started_at: "2026-06-23T00:00:00Z"
     completed_at: null
-    commit: null
-    notes: "Self-growing wiki module (user-selected priority) + server-deploy interface"
+    commit: "23b65e1"
+    notes: "Self-growing wiki MVP complete: Markdown source of truth, content-hash dedup, pluggable backend (local FS working + HTTP server interface reserved), deterministic extractor, 5 REST endpoints. Vector index hook reserved (ChromaDB optional). 53 new tests."
     subtasks:
       - id: 2.1
-        name: "wiki.py WikiStore (Markdown source of truth)"
-        status: not_started
+        name: "WikiStore (Markdown source of truth) + Fact model"
+        status: done
       - id: 2.2
-        name: "Vector index (derived, rebuildable)"
-        status: not_started
+        name: "Vector index (derived, rebuildable) — hook reserved, ChromaDB optional"
+        status: deferred
       - id: 2.3
-        name: "LLM fact extractor (deterministic fallback)"
-        status: not_started
+        name: "Fact extractor (deterministic regex fallback, LLM hook reserved)"
+        status: done
       - id: 2.4
-        name: "Server-deploy interface abstraction"
-        status: not_started
+        name: "Server-deploy interface abstraction (HttpBackend stub + REST contract)"
+        status: done
       - id: 2.5
-        name: "Tests for wiki module"
-        status: not_started
+        name: "Tests for wiki module (40 core + 13 API)"
+        status: done
   stage-3-graph:
     status: not_started
   stage-4-context:
@@ -105,6 +105,15 @@ key_decisions:
   - id: D005
     decision: "PROGRESS.yaml enabled from day one (NEW-2)"
     rationale: "Cross-window continuity must be reliable from the first commit"
+  - id: D006
+    decision: "Markdown as wiki source of truth; vector index derived/rebuildable"
+    rationale: "Human-auditable, git-friendly, never loses data if vector store corrupts"
+  - id: D007
+    decision: "Pluggable WikiBackend Protocol (LocalFilesystemBackend + HttpBackend)"
+    rationale: "WikiStore code never changes when server deploy lands; HTTP REST contract fixed now"
+  - id: D008
+    decision: "Deterministic regex extractor as default; LLM extractor reserved (Stage 3)"
+    rationale: "Tests run network-free; precision over recall to avoid polluting memory"
 
 # --- Environment state ---
 environment:
@@ -118,30 +127,37 @@ environment:
 
 # --- Test state ---
 tests:
-  total: 73
-  passing: 73
+  total: 126
+  passing: 126
   failing: 0
-  last_run: "2026-06-23T00:00:00Z"
-  coverage: 97%
-  coverage: null
+  last_run: "2026-06-24T00:00:00Z"
+  coverage: 92%   # wiki core (models/store/extractor) 95-100%; HttpBackend stubs uncovered (requests not installed)
 
 # --- Blockers / risks ---
 blockers: []
 risks:
   - id: R001
-    description: "Redis not running; irrelevant for Stage 1 but needed at Stage 2"
+    description: "Redis not running; irrelevant for routing+wiki but needed for dual-memory cache"
     severity: low
-    mitigation: "Document in README; Stage 1 routing needs no Redis"
+    mitigation: "Wiki uses filesystem backend for now; Redis optional at Stage 2"
+  - id: R002
+    description: "HttpBackend writes raise NotImplementedError (reserved for Stage 8 server deploy)"
+    severity: low
+    mitigation: "REST contract documented in backends.py; LocalFilesystemBackend covers all current needs"
+  - id: R003
+    description: "Vector index (ChromaDB) not yet wired; query uses keyword relevance"
+    severity: low
+    mitigation: "Keyword relevance sufficient for MVP; vector hook is a drop-in rebuild from Markdown"
 
 # --- Next action (CRITICAL — this is what the next window reads first) ---
 next_action:
-  description: "Implement app/core/routing/tiers.py (Tier enum + MODEL_MAP) then signals.py (7 extractors) + tests"
-  expected_output: "Tier/SignalResult dataclasses defined; signals.py extractors return 0-1 contributions; first tests green"
+  description: "Stage 2 wiki MVP is shippable. Next: choose Stage 3 (LangGraph agent graph + LLM fact extractor) or wire dual-memory (short-term session + long-term wiki)."
+  expected_output: "Either LangGraph orchestrator skeleton OR session-memory layer bridging routing output to wiki writes"
   estimated_steps:
-    - "Install requirements-dev.txt (ruff/mypy/pytest)"
-    - "Write tiers.py: Tier enum, MODEL_MAP, tier_for_score()"
-    - "Write signals.py: 7 pure-function extractors + extract_all()"
-    - "Write tests/test_signals.py covering each extractor"
+    - "Decide Stage 3 scope: agent graph vs dual-memory integration"
+    - "If graph: scaffold app/core/graph/ with LangGraph nodes wrapping routing_engine + wiki_store"
+    - "If memory: add app/core/memory/session.py for short-term + wiki_store for long-term"
+    - "Wire LLMFactExtractor (extractor.py) once LangGraph/caller available"
 
 # --- Pointers (do NOT inline contents — just paths) ---
 pointers:
@@ -149,3 +165,5 @@ pointers:
   context_rules: "Aether_Agent_v2_Context_Management_Rules.md"
   example_policy: "enterprise_routing.example.yaml"
   api_docs: "docs/API.md"
+  stage1_summary: "CONTEXT_SUMMARY_STAGE1.md"
+  stage2_summary: "CONTEXT_SUMMARY_STAGE2.md"
