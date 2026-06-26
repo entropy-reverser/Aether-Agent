@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aether-Agent v2 — Wiki 知识库</title>
+  <meta name="description" content="自生长 Wiki 知识库 — 对话自动提取、Markdown 持久化、语义检索">
+  <link rel="stylesheet" href="css/wiki.css">
+</head>
+<body>
+
+  <!-- ========== 顶部导航 ========== -->
+  <nav class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo">Aether Wiki</span>
+      <a href="index.html" class="topbar-back">← 返回演示主页</a>
+    </div>
+    <div class="topbar-stats">
+      <span>事实: <strong id="stat-facts">0</strong></span>
+      <span>主题: <strong id="stat-subjects">0</strong></span>
+      <span>平均置信度: <strong id="stat-confidence">0</strong></span>
+    </div>
+  </nav>
+
+  <!-- ========== 主布局 ========== -->
+  <div class="wiki-layout">
+
+    <!-- ========== 侧边栏 ========== -->
+    <aside class="wiki-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">导航</div>
+        <a class="sidebar-link active" data-nav="input">对话输入</a>
+        <a class="sidebar-link" data-nav="overview">知识概览</a>
+        <a class="sidebar-link" data-nav="docs">Wiki 文档</a>
+        <a class="sidebar-link" data-nav="search">语义检索</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">主题分类</div>
+        <div id="sidebar-subjects">
+          <div class="empty-state" style="padding: 20px; font-size: 0.8rem;">暂无主题</div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">操作</div>
+        <a class="sidebar-link" id="btn-export">导出全部 Markdown</a>
+        <a class="sidebar-link" id="btn-clear" style="color: var(--danger);">清空知识库</a>
+      </div>
+    </aside>
+
+    <!-- ========== 内容区 ========== -->
+    <main class="wiki-content">
+
+      <!-- ========== Section: 对话输入 ========== -->
+      <section id="sec-input">
+        <h1>对话输入 → 自动知识提取</h1>
+        <p>输入对话内容，系统自动提取事实并写入 Markdown 知识库。支持内容哈希去重、按主题归档。</p>
+
+        <div class="input-panel">
+          <textarea id="dialogue-input" placeholder="输入对话内容，每行一条消息...
+
+例如:
+my name is Alice
+I prefer dark mode
+I use Python 3.12
+the project uses FastAPI
+remember that deployment is on Fridays
+the project is a microservice
+we adopt Kubernetes
+api rate limit is 100 per minute"></textarea>
+
+          <div class="examples-row">
+            <button class="example-btn" data-example="personal">个人偏好</button>
+            <button class="example-btn" data-example="project">项目信息</button>
+            <button class="example-btn" data-example="tech">技术栈</button>
+            <button class="example-btn" data-example="ops">运维配置</button>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" id="btn-extract">提取事实并写入 Wiki</button>
+            <button class="secondary" id="btn-clear-input">清空输入</button>
+          </div>
+        </div>
+
+        <div id="extract-result" class="extract-result"></div>
+      </section>
+
+      <!-- ========== Section: 知识概览 ========== -->
+      <section id="sec-overview" style="display: none;">
+        <h1>知识库概览</h1>
+        <p>自生长 Wiki 的当前状态统计。</p>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="ov-facts">0</div><div class="stat-label">事实总数</div></div>
+          <div class="stat-card"><div class="stat-value" id="ov-subjects">0</div><div class="stat-label">主题数</div></div>
+          <div class="stat-card"><div class="stat-value" id="ov-conf">0</div><div class="stat-label">平均置信度</div></div>
+          <div class="stat-card"><div class="stat-value" id="ov-manual">0</div><div class="stat-label">手动添加</div></div>
+          <div class="stat-card"><div class="stat-value" id="ov-extracted">0</div><div class="stat-label">自动提取</div></div>
+        </div>
+
+        <h2>主题分布</h2>
+        <div id="subject-distribution"></div>
+
+        <h2>最近添加</h2>
+        <div id="recent-facts"></div>
+      </section>
+
+      <!-- ========== Section: Wiki 文档 ========== -->
+      <section id="sec-docs" style="display: none;">
+        <h1><span class="doc-icon">📄</span> Wiki 文档 (Markdown)</h1>
+        <p>每个主题一个 Markdown 文档，人类可读、Git 友好。向量索引为派生产物，可随时从 Markdown 重建。</p>
+
+        <div id="docs-container">
+          <div class="empty-state">知识库为空，先在「对话输入」中提取一些事实</div>
+        </div>
+      </section>
+
+      <!-- ========== Section: 语义检索 ========== -->
+      <section id="sec-search" style="display: none;">
+        <h1>语义检索</h1>
+        <p>输入查询关键词，系统通过子串匹配 (1.0) + Jaccard 词重叠 (0..1) 进行相关性排序。</p>
+
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="输入查询，如 'dark mode' 或 'Python'...">
+          <button class="wiki" id="btn-search">搜索</button>
+        </div>
+
+        <div id="search-results" class="search-results"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/wiki-engine.js"></script>
+  <script>
+    "use strict";
+    var Wiki = AetherWiki;
+    var store = new Wiki.WikiStore();
+    var $ = function (id) { return document.getElementById(id); };
+
+    // ========== 示例数据 ==========
+    var EXAMPLES = {
+      personal: "my name is Alice\nI prefer dark mode\nI love TypeScript\nI use VS Code\nremember that my timezone is Asia/Shanghai",
+      project: "the project uses Python 3.12\nthe project is a microservice\nthe project targets high availability\nwe adopt FastAPI as the web framework\ndeployment is on Kubernetes",
+      tech: "I work with Rust and Go\nthe project uses Redis for caching\nI develop in Neovim\nwe adopt LangChain for LLM orchestration\nremember that the vector database is ChromaDB",
+      ops: "api rate limit is 100 per minute\ndeployment is on Fridays\nremember that backups run at 3am\nthe project uses Docker for containerization\nwe choose GitHub Actions for CI/CD",
+    };
+
+    // ========== 侧边栏导航 ==========
+    document.querySelectorAll("[data-nav]").forEach(function (link) {
+      link.addEventListener("click", function () {
+        document.querySelectorAll("[data-nav]").forEach(function (l) { l.classList.remove("active"); });
+        link.classList.add("active");
+        var target = link.dataset.nav;
+        ["input", "overview", "docs", "search"].forEach(function (s) {
+          $("sec-" + s).style.display = (s === target) ? "block" : "none";
+        });
+        if (target === "overview") renderOverview();
+        if (target === "docs") renderDocs();
+      });
+    });
+
+    // ========== 示例按钮 ==========
+    document.querySelectorAll("[data-example]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        $("dialogue-input").value = EXAMPLES[btn.dataset.example];
+      });
+    });
+
+    // ========== 提取事实 ==========
+    $("btn-extract").addEventListener("click", function () {
+      var text = $("dialogue-input").value.trim();
+      if (!text) { alert("请输入对话内容"); return; }
+      var turns = text.split("\n").map(function (t) { return t.trim(); }).filter(Boolean);
+      var facts = Wiki.extractFromTurns(turns, 0.7);
+      var added = store.addFacts(facts);
+      renderExtractResult(facts, added);
+      refreshAll();
+    });
+
+    $("btn-clear-input").addEventListener("click", function () {
+      $("dialogue-input").value = "";
+      $("extract-result").innerHTML = "";
+    });
+
+    function renderExtractResult(facts, added) {
+      var container = $("extract-result");
+      if (facts.length === 0) {
+        container.innerHTML = '<div class="empty-state">未提取到事实 — 尝试包含 "my name is", "I prefer", "the project uses" 等模式</div>';
+        return;
+      }
+      var html = '<div class="extract-summary">提取到 <strong>' + facts.length + '</strong> 条事实，新增 <strong>' + added + '</strong> 条 (' + (facts.length - added) + ' 条重复去重)</div>';
+      html += '<div class="fact-list">';
+      facts.forEach(function (f) {
+        var isNew = store.listFacts().some(function (x) { return x.id === f.id; });
+        html += '<div class="fact-card ' + (isNew ? "" : "dup") + '">';
+        html += '<div class="fact-meta">';
+        html += '<span class="fact-subject">' + f.subject + '</span>';
+        html += '<span class="fact-predicate">' + f.predicate + '</span>';
+        html += '<span class="fact-confidence">' + (f.confidence * 100).toFixed(0) + '%</span>';
+        html += '</div>';
+        html += '<div class="fact-value">' + escapeHtml(f.object) + '</div>';
+        html += '<div class="fact-hash">id: ' + f.id + ' · source: ' + f.source + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // ========== 知识概览 ==========
+    function renderOverview() {
+      var facts = store.listFacts();
+      var s = Wiki.stats(facts);
+      $("ov-facts").textContent = s.factCount;
+      $("ov-subjects").textContent = s.subjectCount;
+      $("ov-conf").textContent = s.avgConfidence;
+      $("ov-manual").textContent = s.sources.manual || 0;
+      $("ov-extracted").textContent = (s.sources.extracted || 0) + (s.sources.parsed || 0);
+
+      // 主题分布
+      var distHtml = "";
+      Object.keys(s.subjects).forEach(function (subj) {
+        var count = s.subjects[subj];
+        var pct = s.factCount > 0 ? (count / s.factCount * 100).toFixed(0) : 0;
+        distHtml += '<div style="margin-bottom: 8px;">';
+        distHtml += '<div style="display: flex; justify-content: space-between; margin-bottom: 2px;">';
+        distHtml += '<span style="font-size: 0.9rem;">' + subj + '</span>';
+        distHtml += '<span style="font-size: 0.85rem; color: var(--text-muted);">' + count + ' (' + pct + '%)</span>';
+        distHtml += '</div>';
+        distHtml += '<div style="height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden;">';
+        distHtml += '<div style="height: 100%; width: ' + pct + '%; background: var(--accent);"></div>';
+        distHtml += '</div></div>';
+      });
+      $("subject-distribution").innerHTML = distHtml || '<div class="empty-state">暂无数据</div>';
+
+      // 最近添加
+      var recent = Wiki.sortByTime(facts).slice(0, 5);
+      var recentHtml = "";
+      recent.forEach(function (f) {
+        var time = new Date(f.created_at * 1000).toLocaleString("zh-CN");
+        recentHtml += '<div class="fact-card">';
+        recentHtml += '<div class="fact-meta">';
+        recentHtml += '<span class="fact-subject">' + f.subject + '</span>';
+        recentHtml += '<span class="fact-predicate">' + f.predicate + '</span>';
+        recentHtml += '<span class="fact-confidence">' + time + '</span>';
+        recentHtml += '</div>';
+        recentHtml += '<div class="fact-value">' + escapeHtml(f.object) + '</div>';
+        recentHtml += '</div>';
+      });
+      $("recent-facts").innerHTML = recentHtml || '<div class="empty-state">暂无数据</div>';
+    }
+
+    // ========== Wiki 文档展示 ==========
+    function renderDocs() {
+      var docs = store.exportMarkdown();
+      var subjects = Object.keys(docs);
+      var container = $("docs-container");
+      if (subjects.length === 0) {
+        container.innerHTML = '<div class="empty-state">知识库为空，先在「对话输入」中提取一些事实</div>';
+        return;
+      }
+      var html = "";
+      subjects.forEach(function (name) {
+        var factCount = store.listFacts(name).length;
+        html += '<div class="doc-card">';
+        html += '<div class="doc-header">';
+        html += '<span class="doc-name">' + name + '.md</span>';
+        html += '<div class="doc-meta"><span>' + factCount + ' facts</span></div>';
+        html += '</div>';
+        html += '<div class="doc-body">' + highlightMarkdown(docs[name]) + '</div>';
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function highlightMarkdown(md) {
+      var escaped = escapeHtml(md);
+      // 标题
+      escaped = escaped.replace(/^# (.+)$/gm, '<span class="md-h1"># $1</span>');
+      // 列表项
+      escaped = escaped.replace(/^- (.+)$/gm, '<span class="md-bullet">-</span> $1');
+      // 键值对 (predicate: object)
+      escaped = escaped.replace(/^(\s*)(\w+):/gm, '$1<span class="md-key">$2</span>:');
+      // 标签 [tag1, tag2]
+      escaped = escaped.replace(/(\[[^\]]+\])/g, '<span class="md-tag">$1</span>');
+      return escaped;
+    }
+
+    // ========== 搜索 ==========
+    $("btn-search").addEventListener("click", doSearch);
+    $("search-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") doSearch();
+    });
+
+    function doSearch() {
+      var q = $("search-input").value.trim();
+      if (!q) return;
+      var results = store.query(q, 20);
+      var container = $("search-results");
+      if (results.length === 0) {
+        container.innerHTML = '<div class="empty-state">无匹配结果</div>';
+        return;
+      }
+      var html = '<div class="extract-summary">找到 <strong>' + results.length + '</strong> 条相关事实</div>';
+      results.forEach(function (r) {
+        html += '<div class="search-hit">';
+        html += '<div class="hit-score-bar" style="width: ' + (r.score * 100) + '%"></div>';
+        html += '<div class="hit-content">';
+        html += '<span class="hit-subject">' + r.fact.subject + '</span>';
+        html += '<span class="hit-predicate">' + r.fact.predicate + ':</span>';
+        html += '<span class="hit-object">' + escapeHtml(r.fact.object) + '</span>';
+        html += '<span class="hit-score">' + r.score.toFixed(3) + '</span>';
+        html += '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+
+    // ========== 导出 ==========
+    $("btn-export").addEventListener("click", function () {
+      var docs = store.exportMarkdown();
+      var subjects = Object.keys(docs);
+      if (subjects.length === 0) { alert("知识库为空"); return; }
+      var blob = new Blob([subjects.map(function (s) {
+        return "=== " + s + ".md ===\n" + docs[s];
+      }).join("\n\n")], { type: "text/markdown" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "aether-wiki-export.md";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ========== 清空 ==========
+    $("btn-clear").addEventListener("click", function () {
+      if (confirm("确定清空所有 Wiki 知识库？此操作不可撤销。")) {
+        store.clear();
+        refreshAll();
+        $("extract-result").innerHTML = "";
+        $("search-results").innerHTML = "";
+      }
+    });
+
+    // ========== 工具函数 ==========
+    function escapeHtml(s) {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function refreshAll() {
+      var facts = store.listFacts();
+      var s = Wiki.stats(facts);
+      $("stat-facts").textContent = s.factCount;
+      $("stat-subjects").textContent = s.subjectCount;
+      $("stat-confidence").textContent = s.avgConfidence;
+      // 侧边栏主题列表
+      var subjects = store.listSubjects();
+      var sidebarHtml = "";
+      subjects.forEach(function (subj) {
+        var count = store.listFacts(subj).length;
+        sidebarHtml += '<a class="sidebar-link" data-subject="' + subj + '">' + subj + '<span class="count">' + count + '</span></a>';
+      });
+      $("sidebar-subjects").innerHTML = sidebarHtml || '<div class="empty-state" style="padding: 20px; font-size: 0.8rem;">暂无主题</div>';
+      // 如果当前在 docs 或 overview 视图, 刷新
+      var activeNav = document.querySelector("[data-nav].active");
+      if (activeNav) {
+        var target = activeNav.dataset.nav;
+        if (target === "docs") renderDocs();
+        if (target === "overview") renderOverview();
+      }
+    }
+
+    // 初始化
+    refreshAll();
+  </script>
+</body>
+</html>

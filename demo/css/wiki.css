@@ -1,0 +1,346 @@
+/* Aether-Agent v2 — Wiki 独立页样式 */
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --bg-input: #0f172a;
+  --bg-sidebar: #111827;
+  --border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --wiki-color: #a855f7;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --code-bg: #0f172a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========== 顶部导航 ========== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+
+.topbar-logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.topbar-back {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.topbar-back:hover { border-color: var(--accent); color: var(--accent); }
+
+.topbar-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-secondary); }
+.topbar-stats strong { color: var(--text-primary); }
+
+/* ========== 主布局: 侧边栏 + 内容区 ========== */
+.wiki-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 56px);
+}
+
+/* ========== 侧边栏 ========== */
+.wiki-sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  overflow-y: auto;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+}
+
+.sidebar-section { margin-bottom: 24px; }
+
+.sidebar-title {
+  padding: 0 20px 8px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover { background: rgba(59, 130, 246, 0.08); color: var(--text-primary); }
+.sidebar-link.active { background: rgba(59, 130, 246, 0.12); color: var(--accent); border-left-color: var(--accent); }
+.sidebar-link .count { margin-left: auto; font-size: 0.75rem; color: var(--text-muted); }
+
+/* ========== 内容区 ========== */
+.wiki-content { padding: 32px 40px; max-width: 900px; }
+
+.wiki-content h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.wiki-content h2 {
+  font-size: 1.3rem;
+  margin: 24px 0 12px;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+
+.wiki-content h3 {
+  font-size: 1.05rem;
+  margin: 16px 0 8px;
+  color: var(--text-primary);
+}
+
+.wiki-content p { margin-bottom: 12px; color: var(--text-secondary); }
+
+/* ========== 对话输入面板 ========== */
+.input-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.input-panel h2 { border: none; padding: 0; margin-bottom: 12px; }
+
+.input-panel textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+.input-panel textarea:focus { outline: none; border-color: var(--accent); }
+
+.examples-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.example-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.example-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+button.primary { background: var(--accent); color: white; }
+button.primary:hover { background: var(--accent-hover); }
+button.secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+button.secondary:hover { border-color: var(--accent); }
+button.wiki { background: var(--wiki-color); color: white; }
+button.wiki:hover { background: #9333ea; }
+button.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+
+/* ========== 提取结果 ========== */
+.extract-result { margin-top: 16px; }
+.extract-summary {
+  padding: 8px 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.fact-list { display: flex; flex-direction: column; gap: 8px; }
+.fact-card {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-input);
+  border-left: 3px solid var(--success);
+}
+.fact-card.dup { border-left-color: var(--text-muted); opacity: 0.6; }
+.fact-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+.fact-subject {
+  background: var(--accent);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.fact-predicate { color: var(--text-secondary); font-size: 0.85rem; font-style: italic; }
+.fact-confidence { margin-left: auto; color: var(--warning); font-size: 0.75rem; }
+.fact-value { color: var(--text-primary); font-size: 0.95rem; }
+.fact-hash { color: var(--text-muted); font-size: 0.7rem; font-family: monospace; margin-top: 2px; }
+
+/* ========== 知识统计卡片 ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+
+/* ========== Wiki 文档展示 ========== */
+.wiki-doc-section { margin-bottom: 32px; }
+.wiki-doc-section h2 { display: flex; align-items: center; gap: 8px; }
+.doc-icon { color: var(--wiki-color); }
+
+.doc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-name {
+  font-family: "SF Mono", Monaco, monospace;
+  color: var(--wiki-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.doc-meta { display: flex; gap: 12px; font-size: 0.75rem; color: var(--text-muted); }
+
+.doc-body {
+  padding: 16px;
+  font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+}
+
+/* Markdown 语法高亮 (简单版) */
+.doc-body .md-h1 { color: var(--wiki-color); font-weight: 700; }
+.doc-body .md-bullet { color: var(--accent); }
+.doc-body .md-key { color: var(--success); }
+.doc-body .md-tag { color: var(--warning); }
+
+/* ========== 搜索栏 ========== */
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.search-bar input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+.search-bar input:focus { outline: none; border-color: var(--accent); }
+
+.search-results { margin-bottom: 24px; }
+.search-hit {
+  position: relative;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.hit-score-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--wiki-color);
+}
+.hit-content { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.85rem; }
+.hit-subject { background: var(--accent); color: white; padding: 1px 6px; border-radius: 3px; font-size: 0.7rem; }
+.hit-predicate { color: var(--text-secondary); }
+.hit-object { color: var(--text-primary); }
+.hit-score { margin-left: auto; color: var(--wiki-color); font-family: monospace; font-size: 0.8rem; }
+
+/* ========== 空状态 ========== */
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 60px 20px;
+  font-style: italic;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .wiki-layout { grid-template-columns: 1fr; }
+  .wiki-sidebar { position: relative; top: 0; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .wiki-content { padding: 20px; }
+}
